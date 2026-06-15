@@ -19,7 +19,7 @@
             overflow-x: hidden;
         }
 
-        /* 캔버스 배경 레이어 전체화면 고정 */
+        /* 캔버스 배경 레이어 전체화면 고정 및 미세 블러 */
         #starfield {
             position: fixed;
             top: 0;
@@ -28,7 +28,7 @@
             height: 100vh;
             z-index: 0;
             pointer-events: none;
-            filter: blur(0.5px); /* 은은하고 흐릿한 연출을 위한 미세 블러 */
+            filter: blur(0.5px);
         }
 
         /* 스크롤바 커스텀 */
@@ -90,13 +90,18 @@
                     </label>
                 </div>
 
-                <!-- 운영자 전용 버튼 (평소 숨김) -->
-                <button id="adminRegistryBtn" onclick="openAddModal()" class="hidden px-4 py-2 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 hover:from-slate-900 hover:to-slate-950 text-white font-bold text-xs tracking-wider rounded border border-slate-850 transition-all duration-300 shadow-lg flex items-center gap-2">
-                    <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
-                    </svg>
-                    REGISTRY OPERATOR (길드원 추가)
-                </button>
+                <!-- 운영자 전용 버튼들 (평소 숨김) -->
+                <div class="flex items-center gap-2">
+                    <button id="adminExportBtn" onclick="openExportModal()" class="hidden px-3.5 py-2 bg-slate-950 hover:bg-slate-900 text-cyan-400 font-bold text-xs tracking-wider rounded border border-cyan-950 transition-all duration-300 flex items-center gap-2">
+                        EXPORT DATA (데이터 추출)
+                    </button>
+                    <button id="adminRegistryBtn" onclick="openAddModal()" class="hidden px-4 py-2 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 hover:from-slate-900 hover:to-slate-950 text-white font-bold text-xs tracking-wider rounded border border-slate-850 transition-all duration-300 shadow-lg flex items-center gap-2">
+                        <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
+                        </svg>
+                        REGISTRY OPERATOR (길드원 추가)
+                    </button>
+                </div>
             </div>
         </div>
     </header>
@@ -224,7 +229,7 @@
                 <p id="detailDesc" class="text-xs text-slate-300 italic leading-relaxed">"최선의 방어는 압도적인 파괴입니다."</p>
             </div>
 
-            <!-- 운영자 전용 제어 단독 인터페이스 (Admin Access 활성화 시 해제) -->
+            <!-- 운영자 전용 제어 단독 인터페이스 -->
             <div id="adminControls" class="hidden pt-4 border-t border-slate-900/80 grid grid-cols-2 gap-3 z-10">
                 <button onclick="requestDecommission()" class="py-2 bg-red-950/20 border border-red-900/50 hover:bg-red-900/30 text-red-300 rounded text-[10px] font-bold tracking-wider uppercase transition-all duration-300">
                     DECOMMISSION (제명)
@@ -293,7 +298,7 @@
 
                 <div>
                     <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">대표 한마디 (MOTTO)</label>
-                    <input type="text" id="formDesc" required placeholder="프로필 하단에 출력될 대표 한마디 문구를 입력해주세요." class="w-full bg-black border border-slate-900 rounded px-3 py-2 text-white focus:outline-none focus:border-slate-800 transition-all">
+                    <input type="text" id="formDesc" required placeholder="대표 한마디 문구를 입력해주세요." class="w-full bg-black border border-slate-900 rounded px-3 py-2 text-white focus:outline-none focus:border-slate-800 transition-all">
                 </div>
 
                 <div class="pt-4 flex gap-3">
@@ -308,12 +313,38 @@
         </div>
     </div>
 
-    <!-- 영구 제명 확인용 커스텀 모달 (브라우저 confirm 대체) -->
+    <!-- 데이터 추출 콘솔 (정적 배포 파일 업데이트용 JSON 내보내기 모달) -->
+    <div id="exportModal" class="hidden fixed inset-0 bg-black/95 backdrop-blur-md z-50 flex items-center justify-center p-4">
+        <div class="bg-gradient-to-b from-slate-950 to-black border border-slate-900 max-w-xl w-full rounded-lg shadow-2xl p-6 relative overflow-hidden flex flex-col gap-4">
+            <div class="flex justify-between items-center pb-3 border-b border-slate-900">
+                <h3 class="text-sm font-black tracking-wider uppercase text-white">Database JSON Exporter (코드 업데이트용)</h3>
+                <button onclick="closeExportModal()" class="text-slate-500 hover:text-white transition-all p-1">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <p class="text-[11px] text-slate-400 leading-relaxed">
+                화면에서 수정한 내역을 깃허브에 영구 반영하려면, 아래의 JSON 텍스트를 복사하여 우측 코드의 <code class="text-cyan-400 font-mono">defaultMembers</code> 대입부에 덮어쓴 뒤 깃허브에 커밋·푸시해주십시오.
+            </p>
+            <textarea id="exportTextarea" readonly class="w-full h-64 bg-black border border-slate-900 rounded p-3 text-[10px] font-mono text-slate-300 focus:outline-none"></textarea>
+            <div class="flex gap-3">
+                <button onclick="copyExportedJson()" class="flex-1 py-2 bg-slate-900 hover:bg-slate-800 text-cyan-400 font-bold text-[10px] tracking-wider rounded border border-slate-800 transition-all duration-300 uppercase">
+                    Copy to Clipboard (클립보드 복사)
+                </button>
+                <button onclick="closeExportModal()" class="flex-1 py-2 bg-black border border-slate-900 hover:bg-slate-950 rounded text-[10px] font-bold tracking-wider uppercase transition-all duration-300">
+                    Close Windows
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 영구 제명 확인용 커스텀 모달 -->
     <div id="confirmModal" class="hidden fixed inset-0 bg-black/95 backdrop-blur-md z-[60] flex items-center justify-center p-4">
         <div class="bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 border border-red-950/60 max-w-sm w-full rounded-lg shadow-2xl p-6 text-center">
             <span class="w-12 h-12 rounded-full bg-red-950/20 border border-red-500/30 flex items-center justify-center mx-auto mb-4 text-red-500 text-lg animate-pulse">⚠️</span>
             <h3 class="text-sm font-black tracking-wider uppercase text-white mb-2">Personnel Decommission</h3>
-            <p id="confirmMessage" class="text-xs text-slate-400 leading-relaxed mb-6">정말로 해당 길드원의 기록을 영구 제명하고 무력화하시겠습니까?</p>
+            <p id="confirmMessage" class="text-xs text-slate-400 leading-relaxed mb-6">정말로 해당 길드원의 기록을 영구 제명하시겠습니까?</p>
             <div class="flex gap-3">
                 <button onclick="closeConfirmModal()" class="flex-1 py-2 bg-black border border-slate-900 hover:bg-slate-950 rounded text-[10px] font-bold tracking-wider uppercase transition-all duration-300">
                     Abort Decommission
@@ -330,35 +361,9 @@
         SYSTEM RECONFIGURED
     </div>
 
-    <!-- 파이어베이스 및 로컬스토리지 복합동기화 연계 통합 엔진 -->
-    <script type="module">
-        // 필수 Firebase 모듈 수입
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, doc, setDoc, getDoc, onSnapshot, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        // 파이어베이스 활성화 유효 감지 플래그
-        let isFirebaseActive = false;
-        let app, auth, db;
-        let appId = 'default-app-id';
-
-        // 1단계: 파이어베이스 동기화 주입 유효성 안전 검증
-        try {
-            if (typeof __firebase_config !== 'undefined' && __firebase_config && Object.keys(JSON.parse(__firebase_config)).length > 0) {
-                const firebaseConfig = JSON.parse(__firebase_config);
-                app = initializeApp(firebaseConfig);
-                auth = getAuth(app);
-                db = getFirestore(app);
-                appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-                isFirebaseActive = true;
-                console.log("[SYSTEM] Firebase Realtime cloud database layer bound.");
-            }
-        } catch (e) {
-            console.warn("[SYSTEM] Firebase configuration is invalid or missing in this sandbox. Switching to offline LocalStorage fallback layer.", e);
-            isFirebaseActive = false;
-        }
-
-        // 직업별 고유 시그니처 컬러 테마 매핑 테이블 (딜러/탱커/힐러 테두리 고정색 유지)
+    <!-- 순수 스크립트 실행 제어부 (Firebase 종속성 완전 소멸) -->
+    <script>
+        // 직업별 시그니처 고정 테마 색상 (딜러: 로즈레드 / 탱커: 에메랄드 / 힐러: 네온사이언)
         const classThemes = {
             dealer: {
                 hex: '#ef4444',
@@ -377,7 +382,7 @@
             }
         };
 
-        // RGBA 알파 글로우 매핑 헬퍼 함수
+        // 지향색 서클 전용 RGBA 파싱 헬퍼
         function hexToRgba(hex, alpha) {
             if (!hex || hex.length < 7) {
                 return `rgba(0, 240, 255, ${alpha})`;
@@ -388,58 +393,59 @@
             return `rgba(${r}, ${g}, ${b}, ${alpha})`;
         }
 
-        // 초기 기본 마이그레이션 백업 멤버 셋
+        // [★중요★] 깃허브 배포 시 길드원 정보의 소스 데이터가 되는 기본 배열 구조
+        // 이 소스코드를 편집하여 직접 깃허브에 업로드하면 전 세계 대원들의 화면에 즉시 적용됩니다.
         const defaultMembers = [
             {
-                id: "1",
-                name: "알파슬레이어",
-                class: "dealer",
-                desc: "최선의 방어는 압도적인 파괴입니다.",
-                visual: "⚔️",
-                power: 954000,
-                colors: ["#ef4444", "#a855f7", "#00f0ff"],
-                joinDate: "2026.01.12",
-                image: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80&w=400"
+                "id": "1",
+                "name": "알파슬레이어",
+                "class": "dealer",
+                "desc": "최선의 방어는 압도적인 파괴입니다.",
+                "visual": "⚔️",
+                "power": 954000,
+                "colors": ["#ef4444", "#a855f7", "#00f0ff"],
+                "joinDate": "2026.01.12",
+                "image": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80&w=400"
             },
             {
-                id: "2",
-                name: "아이언월",
-                class: "tanker",
-                desc: "내가 무너지기 전엔 아무도 못 지나간다.",
-                visual: "🛡️",
-                power: 742500,
-                colors: ["#10b981", "#f59e0b"],
-                joinDate: "2026.02.01",
-                image: "https://images.unsplash.com/photo-1614728894747-a83421e2b9c9?auto=format&fit=crop&q=80&w=400"
+                "id": "2",
+                "name": "아이언월",
+                "class": "tanker",
+                "desc": "내가 무너지기 전엔 아무도 못 지나간다.",
+                "visual": "🛡️",
+                "power": 742500,
+                "colors": ["#10b981", "#f59e0b"],
+                "joinDate": "2026.02.01",
+                "image": "https://images.unsplash.com/photo-1614728894747-a83421e2b9c9?auto=format&fit=crop&q=80&w=400"
             },
             {
-                id: "3",
-                name: "성스러운빛",
-                class: "healer",
-                desc: "체력바가 마르지 않도록 케어합니다.",
-                visual: "✨",
-                power: 631000,
-                colors: ["#00f0ff", "#ffffff", "#f59e0b"],
-                joinDate: "2026.02.08",
-                image: "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?auto=format&fit=crop&q=80&w=400"
+                "id": "3",
+                "name": "성스러운빛",
+                "class": "healer",
+                "desc": "체력바가 마르지 않도록 케어합니다.",
+                "visual": "✨",
+                "power": 631000,
+                "colors": ["#00f0ff", "#ffffff", "#f59e0b"],
+                "joinDate": "2026.02.08",
+                "image": "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?auto=format&fit=crop&q=80&w=400"
             },
             {
-                id: "4",
-                name: "신입레이더",
-                class: "dealer",
-                desc: "새로 합류하게 되었습니다. 잘 부탁드립니다!",
-                visual: "👤",
-                power: 421000,
-                colors: ["#f59e0b"],
-                joinDate: "2026.06.15",
-                image: ""
+                "id": "4",
+                "name": "신입레이더",
+                "class": "dealer",
+                "desc": "새로 합류하게 되었습니다. 잘 부탁드립니다!",
+                "visual": "👤",
+                "power": 421000,
+                "colors": ["#f59e0b"],
+                "joinDate": "2026.06.15",
+                "image": ""
             }
         ];
 
-        // 파이어베이스/로컬스토리지 통합 실시간 배열
+        // 런타임 캐싱 연계 배열 (로컬 저장소 캐시 선독점 후 기본 배열 연동)
         let guildMembers = [];
 
-        // 통합 시스템 상태 제어 정보
+        // 글로벌 시스템 상태 정보
         const systemState = {
             activeFilter: 'all',
             searchQuery: '',
@@ -448,7 +454,7 @@
             isAdmin: false
         };
 
-        // 비율적 좌표(0~1) 기반 캔버스 은은한 천체 흐름 그래픽 엔진 (성운 먼지 및 파티클 미세 흐름)
+        // 캔버스 은은한 천체 및 성운 먼지 흐름 그래픽 렌더러
         function initStarfield() {
             const canvas = document.getElementById('starfield');
             const ctx = canvas.getContext('2d');
@@ -560,88 +566,31 @@
             animate();
         }
 
-        // 2단계: 하이브리드 데이터 동기화 감지 (Firebase vs LocalStorage)
-        let unsubscribeMembers = null;
-
-        function loadOfflineData() {
-            const cached = localStorage.getItem('anonymity_guild_roster');
+        // 로컬 정적 데이터 초기 로딩
+        function loadDatabase() {
+            const cached = localStorage.getItem('anonymity_guild_roster_static');
             if (cached) {
                 guildMembers = JSON.parse(cached);
             } else {
-                guildMembers = [...defaultMembers];
-                localStorage.setItem('anonymity_guild_roster', JSON.stringify(guildMembers));
+                guildMembers = JSON.parse(JSON.stringify(defaultMembers));
+                localStorage.setItem('anonymity_guild_roster_static', JSON.stringify(guildMembers));
             }
             renderGrid();
         }
 
-        function saveOfflineData() {
-            localStorage.setItem('anonymity_guild_roster', JSON.stringify(guildMembers));
+        // 오프라인 로컬 캐시 업데이트 트리거
+        function saveDatabase() {
+            localStorage.setItem('anonymity_guild_roster_static', JSON.stringify(guildMembers));
             renderGrid();
         }
 
-        function initDataSync() {
-            if (isFirebaseActive) {
-                onAuthStateChanged(auth, async (user) => {
-                    if (user) {
-                        const membersCol = collection(db, 'artifacts', appId, 'public', 'data', 'members');
-                        unsubscribeMembers = onSnapshot(membersCol, (snapshot) => {
-                            const loadedMembers = [];
-                            snapshot.forEach(doc => {
-                                const data = doc.data();
-                                loadedMembers.push({
-                                    id: doc.id,
-                                    ...data
-                                });
-                            });
-
-                            if (loadedMembers.length === 0) {
-                                seedDefaultData();
-                            } else {
-                                guildMembers = loadedMembers;
-                                renderGrid();
-                                if (systemState.selectedCardId) {
-                                    selectMember(systemState.selectedCardId);
-                                }
-                            }
-                        });
-                    } else {
-                        try {
-                            await signInAnonymously(auth);
-                        } catch (err) {
-                            console.error("Anonymous authentication failed.", err);
-                            loadOfflineData();
-                        }
-                    }
-                });
-            } else {
-                loadOfflineData();
-            }
-        }
-
-        async function seedDefaultData() {
-            if (!isFirebaseActive) return;
-            for (const member of defaultMembers) {
-                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'members', member.id);
-                await setDoc(docRef, {
-                    name: member.name,
-                    class: member.class,
-                    desc: member.desc,
-                    visual: member.visual,
-                    power: member.power,
-                    colors: member.colors,
-                    joinDate: member.joinDate,
-                    image: member.image
-                });
-            }
-        }
-
-        // 운영자 권한 모드 토글 스위치 제어
+        // 운영자 권한 모드 토글 스위치 제어 (비밀번호: 260326)
         function toggleAdminMode() {
             const toggle = document.getElementById('adminToggle');
             const isChecked = toggle.checked;
 
             if (isChecked) {
-                const password = prompt("보안 접근 키를 입력하세요.", "");
+                const password = prompt("운영자 보안 접근 키를 입력하세요.", "");
                 if (password === "260326") {
                     systemState.isAdmin = true;
                     showToast("OPERATOR AUTHORIZATION GRANTED.");
@@ -660,13 +609,16 @@
 
         function applyAdminVisibility() {
             const registryBtn = document.getElementById('adminRegistryBtn');
+            const exportBtn = document.getElementById('adminExportBtn');
             const adminControls = document.getElementById('adminControls');
 
             if (systemState.isAdmin) {
                 registryBtn.classList.remove('hidden');
+                exportBtn.classList.remove('hidden');
                 if (adminControls) adminControls.classList.remove('hidden');
             } else {
                 registryBtn.classList.add('hidden');
+                exportBtn.classList.add('hidden');
                 if (adminControls) adminControls.classList.add('hidden');
             }
         }
@@ -719,7 +671,7 @@
                         <div class="${member.image ? 'hidden' : ''} absolute inset-0 flex items-center justify-center text-4xl select-none opacity-20" style="color: ${theme.hex}; text-shadow: 0 0 15px ${theme.glow};">${member.visual}</div>
                     </div>
                     <div class="p-4 bg-slate-950/90 flex flex-col gap-1">
-                        <span class="text-[8px] font-black uppercase tracking-widest" style="color: ${theme.hex}">${member.class}</span>
+                        <span class="text-[8px] font-black uppercase tracking-widest" style="color: ${theme.hex}">${member.class.toUpperCase()}</span>
                         <div class="text-sm font-black text-white tracking-wide">${member.name}</div>
                         <div class="flex items-center justify-between mt-1 pt-1.5 border-t border-slate-900/50">
                             <span class="text-[8px] text-slate-500 uppercase tracking-wider font-bold">POWER</span>
@@ -962,8 +914,8 @@
             document.getElementById('formColorsContainer').innerHTML = '';
         }
 
-        // CRUD: 생성(Create) 및 수정(Update)을 하이브리드로 반영
-        async function submitMemberForm(e) {
+        // CRUD: 생성 및 수정 로직
+        function submitMemberForm(e) {
             e.preventDefault();
 
             const memberIdVal = document.getElementById('formMemberId').value;
@@ -990,6 +942,7 @@
             const targetId = memberIdVal ? memberIdVal : Date.now().toString();
 
             const data = {
+                id: targetId,
                 name,
                 image,
                 power,
@@ -999,43 +952,26 @@
                 colors: colors
             };
 
-            if (!memberIdVal) {
+            if (memberIdVal) {
+                const idx = guildMembers.findIndex(m => m.id === memberIdVal);
+                if (idx !== -1) {
+                    data.joinDate = guildMembers[idx].joinDate;
+                    guildMembers[idx] = data;
+                }
+            } else {
                 const now = new Date();
                 data.joinDate = `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, '0')}.${String(now.getDate()).padStart(2, '0')}`;
+                guildMembers.push(data);
             }
 
-            if (isFirebaseActive) {
-                try {
-                    const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'members', targetId);
-                    await setDoc(docRef, data, { merge: true });
-                    showToast(`${name} 길드원의 프로필 정보가 동기화되었습니다.`);
-                } catch (error) {
-                    console.error("Firestore save failed, saving locally...", error);
-                    saveMemberLocally(targetId, data, memberIdVal);
-                }
-            } else {
-                saveMemberLocally(targetId, data, memberIdVal);
-            }
-
+            saveDatabase();
+            showToast(`${name} 길드원 정보가 성공적으로 반영되었습니다.`);
             closeAddModal();
-        }
-
-        function saveMemberLocally(targetId, data, isEdit) {
-            if (isEdit) {
-                const idx = guildMembers.findIndex(m => m.id === targetId);
-                if (idx !== -1) {
-                    guildMembers[idx] = { ...guildMembers[idx], ...data };
-                }
-            } else {
-                guildMembers.push({ id: targetId, ...data });
-            }
-            saveOfflineData();
-            showToast(`${data.name} 길드원 정보가 로컬 저장소에 반영되었습니다.`);
             systemState.selectedCardId = targetId;
             selectMember(targetId);
         }
 
-        // CRUD: 제명(Delete) 액션을 하이브리드 반영
+        // CRUD: 제명 관련 데이터 연산
         let pendingDecommissionId = null;
 
         function requestDecommission() {
@@ -1043,7 +979,7 @@
             if (!member) return;
 
             pendingDecommissionId = member.id;
-            document.getElementById('confirmMessage').innerHTML = `정말로 <strong>${member.name}</strong> 길드원의 모든 전술 데이터를 영구적으로 제명하시겠습니까? 이 작업은 되돌릴 수 없습니다.`;
+            document.getElementById('confirmMessage').innerHTML = `정말로 <strong>${member.name}</strong> 길드원의 기록을 영구 제명하시겠습니까?`;
             document.getElementById('confirmModal').classList.remove('hidden');
         }
 
@@ -1052,33 +988,34 @@
             pendingDecommissionId = null;
         }
 
-        async function executeDecommission() {
+        function executeDecommission() {
             if (!pendingDecommissionId) return;
 
-            const targetId = pendingDecommissionId.toString();
-
-            if (isFirebaseActive) {
-                try {
-                    const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'members', targetId);
-                    await deleteDoc(docRef);
-                    showToast("길드원이 시스템 Roster에서 제명되었습니다.");
-                } catch (error) {
-                    console.error("Firestore delete failed, deleting locally...", error);
-                    deleteMemberLocally(pendingDecommissionId);
-                }
-            } else {
-                deleteMemberLocally(pendingDecommissionId);
-            }
+            guildMembers = guildMembers.filter(m => m.id !== pendingDecommissionId);
+            saveDatabase();
+            showToast("길드원 데이터가 시스템 저장소에서 영구 제명되었습니다.");
 
             closeConfirmModal();
             closeDetailModal();
             systemState.selectedCardId = null;
         }
 
-        function deleteMemberLocally(id) {
-            guildMembers = guildMembers.filter(m => m.id !== id);
-            saveOfflineData();
-            showToast("길드원이 로컬 저장소에서 제거되었습니다.");
+        // 정적 배포를 위한 데이터 추출 모달 제어
+        function openExportModal() {
+            document.getElementById('exportModal').classList.remove('hidden');
+            // JSON으로 깔끔하게 포맷하여 텍스트 영역에 주입
+            document.getElementById('exportTextarea').value = JSON.stringify(guildMembers, null, 4);
+        }
+
+        function closeExportModal() {
+            document.getElementById('exportModal').classList.add('hidden');
+        }
+
+        function copyExportedJson() {
+            const textarea = document.getElementById('exportTextarea');
+            textarea.select();
+            document.execCommand('copy');
+            showToast("JSON DATABASE COPIED TO CLIPBOARD.");
         }
 
         function showToast(msg) {
@@ -1090,40 +1027,16 @@
             }, 3000);
         }
 
-        // 모듈 범위 내부 변수와 HTML 인라인 온클릭 이벤트 핸들러 글로벌 매핑 보장
-        window.toggleAdminMode = toggleAdminMode;
-        window.applyAdminVisibility = applyAdminVisibility;
-        window.renderGrid = renderGrid;
-        window.onSearchChange = onSearchChange;
-        window.onSortChange = onSortChange;
-        window.setFilter = setFilter;
-        window.selectMember = selectMember;
-        window.handleImageLoadError = handleImageLoadError;
-        window.closeDetailModal = closeDetailModal;
-        window.updateStatistics = updateStatistics;
-        window.addFormColorRow = addFormColorRow;
-        window.removeFormColorRow = removeFormColorRow;
-        window.syncColorRowText = syncColorRowText;
-        window.syncColorRowPicker = syncColorRowPicker;
-        window.openAddModal = openAddModal;
-        window.triggerEditMember = triggerEditMember;
-        window.closeAddModal = closeAddModal;
-        window.submitMemberForm = submitMemberForm;
-        window.requestDecommission = requestDecommission;
-        window.closeConfirmModal = closeConfirmModal;
-        window.executeDecommission = executeDecommission;
-        window.showToast = showToast;
-
-        // 브라우저 최초 구동 시 캔버스 초기화 및 사용자 익명 인증 활성화 가동
+        // 초기화 가동 실행
         window.onload = () => {
             initStarfield();
             
-            // 이미지 에러 이벤트 리스너를 비동기식 모듈 환경에서 수동으로 완벽하게 매핑 (ReferenceError 원천 차단)
+            // 이미지 오류 탐지 이벤트 수동 바인딩
             document.getElementById('detailImage').addEventListener('error', function() {
                 handleImageLoadError(this);
             });
             
-            initDataSync();
+            loadDatabase();
         };
     </script>
 </body>
