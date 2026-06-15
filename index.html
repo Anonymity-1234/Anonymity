@@ -192,7 +192,7 @@
                 </div>
             </div>
 
-            <!-- 2. 이미지 프레임 (3:4 종횡비 엄격 준수, 인라인 onerror 속성을 완전히 걷어내고 프로그램 방식 바인딩으로 수정) -->
+            <!-- 2. 이미지 프레임 (3:4 종횡비 엄격 준수) -->
             <div class="relative aspect-[3/4] max-w-[280px] mx-auto w-full rounded-lg bg-black/80 border border-slate-900/60 flex items-center justify-center overflow-hidden z-10">
                 <div class="absolute inset-0 grid-pattern opacity-[0.03]"></div>
                 <img id="detailImage" src="" alt="길드원 전술 이미지" class="w-full h-full object-cover transition-all duration-500">
@@ -330,30 +330,35 @@
         SYSTEM RECONFIGURED
     </div>
 
-    <!-- 파이어베이스 모듈 스크립트 전면 연계 -->
+    <!-- 파이어베이스 및 로컬스토리지 복합동기화 연계 통합 엔진 -->
     <script type="module">
         // 필수 Firebase 모듈 수입
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, doc, setDoc, getDoc, onSnapshot, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // 파이어베이스 런타임 주입 환경 변수 파싱 및 검증
-        let firebaseConfig = {};
+        // 파이어베이스 활성화 유효 감지 플래그
+        let isFirebaseActive = false;
+        let app, auth, db;
+        let appId = 'default-app-id';
+
+        // 1단계: 파이어베이스 동기화 주입 유효성 안전 검증
         try {
-            if (typeof __firebase_config !== 'undefined' && __firebase_config) {
-                firebaseConfig = JSON.parse(__firebase_config);
+            if (typeof __firebase_config !== 'undefined' && __firebase_config && Object.keys(JSON.parse(__firebase_config)).length > 0) {
+                const firebaseConfig = JSON.parse(__firebase_config);
+                app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+                appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+                isFirebaseActive = true;
+                console.log("[SYSTEM] Firebase Realtime cloud database layer bound.");
             }
         } catch (e) {
-            console.error("Firebase config parsing failed.", e);
+            console.warn("[SYSTEM] Firebase configuration is invalid or missing in this sandbox. Switching to offline LocalStorage fallback layer.", e);
+            isFirebaseActive = false;
         }
 
-        // 인스턴스 초기화
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-
-        // 직업별 고유 시그니처 컬러 테마 매핑 테이블
+        // 직업별 고유 시그니처 컬러 테마 매핑 테이블 (딜러/탱커/힐러 테두리 고정색 유지)
         const classThemes = {
             dealer: {
                 hex: '#ef4444',
@@ -386,7 +391,7 @@
         // 초기 기본 마이그레이션 백업 멤버 셋
         const defaultMembers = [
             {
-                id: 1,
+                id: "1",
                 name: "알파슬레이어",
                 class: "dealer",
                 desc: "최선의 방어는 압도적인 파괴입니다.",
@@ -397,7 +402,7 @@
                 image: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80&w=400"
             },
             {
-                id: 2,
+                id: "2",
                 name: "아이언월",
                 class: "tanker",
                 desc: "내가 무너지기 전엔 아무도 못 지나간다.",
@@ -408,7 +413,7 @@
                 image: "https://images.unsplash.com/photo-1614728894747-a83421e2b9c9?auto=format&fit=crop&q=80&w=400"
             },
             {
-                id: 3,
+                id: "3",
                 name: "성스러운빛",
                 class: "healer",
                 desc: "체력바가 마르지 않도록 케어합니다.",
@@ -419,7 +424,7 @@
                 image: "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?auto=format&fit=crop&q=80&w=400"
             },
             {
-                id: 4,
+                id: "4",
                 name: "신입레이더",
                 class: "dealer",
                 desc: "새로 합류하게 되었습니다. 잘 부탁드립니다!",
@@ -431,7 +436,7 @@
             }
         ];
 
-        // 파이어베이스 동기화 기반 실시간 배열
+        // 파이어베이스/로컬스토리지 통합 실시간 배열
         let guildMembers = [];
 
         // 통합 시스템 상태 제어 정보
@@ -443,7 +448,7 @@
             isAdmin: false
         };
 
-        // 비율적 좌표(0~1) 기반 캔버스 은은한 천체 흐름 그래픽 엔진
+        // 비율적 좌표(0~1) 기반 캔버스 은은한 천체 흐름 그래픽 엔진 (성운 먼지 및 파티클 미세 흐름)
         function initStarfield() {
             const canvas = document.getElementById('starfield');
             const ctx = canvas.getContext('2d');
@@ -555,62 +560,68 @@
             animate();
         }
 
-        // 인증 상태 확인 후 파이어스토어 자동 실시간 동기화 바인딩 (RULE 3 준수)
-        let currentUser = null;
-        async function initAuth() {
-            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                try {
-                    const userCredential = await signInWithCustomToken(auth, __initial_auth_token);
-                    currentUser = userCredential.user;
-                } catch (e) {
-                    const userCredential = await signInAnonymously(auth);
-                    currentUser = userCredential.user;
-                }
+        // 2단계: 하이브리드 데이터 동기화 감지 (Firebase vs LocalStorage)
+        let unsubscribeMembers = null;
+
+        function loadOfflineData() {
+            const cached = localStorage.getItem('anonymity_guild_roster');
+            if (cached) {
+                guildMembers = JSON.parse(cached);
             } else {
-                const userCredential = await signInAnonymously(auth);
-                currentUser = userCredential.user;
+                guildMembers = [...defaultMembers];
+                localStorage.setItem('anonymity_guild_roster', JSON.stringify(guildMembers));
+            }
+            renderGrid();
+        }
+
+        function saveOfflineData() {
+            localStorage.setItem('anonymity_guild_roster', JSON.stringify(guildMembers));
+            renderGrid();
+        }
+
+        function initDataSync() {
+            if (isFirebaseActive) {
+                onAuthStateChanged(auth, async (user) => {
+                    if (user) {
+                        const membersCol = collection(db, 'artifacts', appId, 'public', 'data', 'members');
+                        unsubscribeMembers = onSnapshot(membersCol, (snapshot) => {
+                            const loadedMembers = [];
+                            snapshot.forEach(doc => {
+                                const data = doc.data();
+                                loadedMembers.push({
+                                    id: doc.id,
+                                    ...data
+                                });
+                            });
+
+                            if (loadedMembers.length === 0) {
+                                seedDefaultData();
+                            } else {
+                                guildMembers = loadedMembers;
+                                renderGrid();
+                                if (systemState.selectedCardId) {
+                                    selectMember(systemState.selectedCardId);
+                                }
+                            }
+                        });
+                    } else {
+                        try {
+                            await signInAnonymously(auth);
+                        } catch (err) {
+                            console.error("Anonymous authentication failed.", err);
+                            loadOfflineData();
+                        }
+                    }
+                });
+            } else {
+                loadOfflineData();
             }
         }
 
-        // 파이어스토어 실시간 바인딩 리스너 (RULE 1, RULE 2, RULE 3 완전 충족)
-        let unsubscribeMembers = null;
-        function subscribeToMembers() {
-            if (!currentUser) return;
-
-            // Strict Path 적용: /artifacts/{appId}/public/data/members
-            const membersCol = collection(db, 'artifacts', appId, 'public', 'data', 'members');
-
-            unsubscribeMembers = onSnapshot(membersCol, (snapshot) => {
-                const loadedMembers = [];
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    loadedMembers.push({
-                        id: isNaN(Number(doc.id)) ? doc.id : Number(doc.id),
-                        ...data
-                    });
-                });
-
-                if (loadedMembers.length === 0) {
-                    // 데이터가 비어 있을 시 기본 뼈대 데이터를 클라우드에 자동 파퓰레이트
-                    seedDefaultData();
-                } else {
-                    guildMembers = loadedMembers;
-                    renderGrid();
-                    // 현재 활성화된 길드원이 있다면 해당 상세 패널 정보 실시간 갱신 적용
-                    if (systemState.selectedCardId) {
-                        selectMember(systemState.selectedCardId);
-                    }
-                }
-            }, (error) => {
-                console.error("Firestore 실시간 리스너 오류:", error);
-            });
-        }
-
-        // 파이어스토어 기본 데이터 시딩
         async function seedDefaultData() {
-            if (!currentUser) return;
+            if (!isFirebaseActive) return;
             for (const member of defaultMembers) {
-                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'members', member.id.toString());
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'members', member.id);
                 await setDoc(docRef, {
                     name: member.name,
                     class: member.class,
@@ -623,14 +634,6 @@
                 });
             }
         }
-
-        // 인증 상태 리스너 개시
-        onAuthStateChanged(auth, (user) => {
-            currentUser = user;
-            if (user) {
-                subscribeToMembers();
-            }
-        });
 
         // 운영자 권한 모드 토글 스위치 제어
         function toggleAdminMode() {
@@ -668,7 +671,7 @@
             }
         }
 
-        // 정적인 데이터 렌더러 파이프라인 (정렬 및 필터 적용은 메모리 상에서 안전하게 처리 - RULE 2)
+        // 정적인 데이터 렌더러 파이프라인
         function renderGrid() {
             const grid = document.getElementById('cardGrid');
             grid.innerHTML = '';
@@ -685,7 +688,6 @@
                 } else if (systemState.sortBy === 'power') {
                     return b.power - a.power;
                 } else {
-                    // 가입 시간 내림차순 정렬 처리
                     return b.id.toString().localeCompare(a.id.toString());
                 }
             });
@@ -742,7 +744,6 @@
             renderGrid();
         }
 
-        // 필터링 버튼 세팅
         function setFilter(className) {
             systemState.activeFilter = className;
             const buttons = document.querySelectorAll('.filter-btn');
@@ -760,7 +761,6 @@
         function selectMember(id) {
             systemState.selectedCardId = id;
             
-            // 실시간 바인딩 시 활성화 체크를 위해 DOM 렌더링 유지
             const activeCards = document.querySelectorAll('.char-card');
             guildMembers.forEach((m, idx) => {
                 const el = activeCards[idx];
@@ -840,7 +840,6 @@
             applyAdminVisibility();
         }
 
-        // 이미지 로딩 에러 시 대체 플레이스홀더를 보여주는 함수 (ReferenceError가 발생하지 않도록 전역 함수 바인딩 완료)
         function handleImageLoadError(imgEl) {
             imgEl.classList.add('hidden');
             const placeholder = document.getElementById('imagePlaceholder');
@@ -963,13 +962,9 @@
             document.getElementById('formColorsContainer').innerHTML = '';
         }
 
-        // CRUD: 생성(Create) 및 수정(Update)을 Firestore 서버에 반영
+        // CRUD: 생성(Create) 및 수정(Update)을 하이브리드로 반영
         async function submitMemberForm(e) {
             e.preventDefault();
-            if (!currentUser) {
-                showToast("시스템 미인증 상태입니다.");
-                return;
-            }
 
             const memberIdVal = document.getElementById('formMemberId').value;
             const name = document.getElementById('formName').value;
@@ -993,9 +988,6 @@
             };
 
             const targetId = memberIdVal ? memberIdVal : Date.now().toString();
-            
-            // Strict Path 정책 준수: artifacts/{appId}/public/data/members/{docId}
-            const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'members', targetId);
 
             const data = {
                 name,
@@ -1012,20 +1004,38 @@
                 data.joinDate = `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, '0')}.${String(now.getDate()).padStart(2, '0')}`;
             }
 
-            try {
-                await setDoc(docRef, data, { merge: true });
-                showToast(`${name} 길드원의 프로필 정보가 성공적으로 클라우드에 배치되었습니다.`);
-                closeAddModal();
-                if (!memberIdVal) {
-                    systemState.selectedCardId = isNaN(Number(targetId)) ? targetId : Number(targetId);
+            if (isFirebaseActive) {
+                try {
+                    const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'members', targetId);
+                    await setDoc(docRef, data, { merge: true });
+                    showToast(`${name} 길드원의 프로필 정보가 동기화되었습니다.`);
+                } catch (error) {
+                    console.error("Firestore save failed, saving locally...", error);
+                    saveMemberLocally(targetId, data, memberIdVal);
                 }
-            } catch (error) {
-                console.error("데이터 저장 중 오류가 발생했습니다:", error);
-                showToast("데이터 저장 실패. 권한 구성을 확인하세요.");
+            } else {
+                saveMemberLocally(targetId, data, memberIdVal);
             }
+
+            closeAddModal();
         }
 
-        // CRUD: 제명(Delete) 액션을 Firestore 서버에 실시간으로 하달
+        function saveMemberLocally(targetId, data, isEdit) {
+            if (isEdit) {
+                const idx = guildMembers.findIndex(m => m.id === targetId);
+                if (idx !== -1) {
+                    guildMembers[idx] = { ...guildMembers[idx], ...data };
+                }
+            } else {
+                guildMembers.push({ id: targetId, ...data });
+            }
+            saveOfflineData();
+            showToast(`${data.name} 길드원 정보가 로컬 저장소에 반영되었습니다.`);
+            systemState.selectedCardId = targetId;
+            selectMember(targetId);
+        }
+
+        // CRUD: 제명(Delete) 액션을 하이브리드 반영
         let pendingDecommissionId = null;
 
         function requestDecommission() {
@@ -1043,22 +1053,32 @@
         }
 
         async function executeDecommission() {
-            if (!pendingDecommissionId || !currentUser) return;
+            if (!pendingDecommissionId) return;
 
             const targetId = pendingDecommissionId.toString();
-            const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'members', targetId);
 
-            try {
-                await deleteDoc(docRef);
-                showToast("길드원이 시스템 Roster에서 제명 및 무력화되었습니다.");
-            } catch (error) {
-                console.error("데이터 제명 중 오류가 발생했습니다:", error);
-                showToast("데이터 제명 실패.");
+            if (isFirebaseActive) {
+                try {
+                    const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'members', targetId);
+                    await deleteDoc(docRef);
+                    showToast("길드원이 시스템 Roster에서 제명되었습니다.");
+                } catch (error) {
+                    console.error("Firestore delete failed, deleting locally...", error);
+                    deleteMemberLocally(pendingDecommissionId);
+                }
+            } else {
+                deleteMemberLocally(pendingDecommissionId);
             }
 
             closeConfirmModal();
             closeDetailModal();
             systemState.selectedCardId = null;
+        }
+
+        function deleteMemberLocally(id) {
+            guildMembers = guildMembers.filter(m => m.id !== id);
+            saveOfflineData();
+            showToast("길드원이 로컬 저장소에서 제거되었습니다.");
         }
 
         function showToast(msg) {
@@ -1095,15 +1115,15 @@
         window.showToast = showToast;
 
         // 브라우저 최초 구동 시 캔버스 초기화 및 사용자 익명 인증 활성화 가동
-        window.onload = async () => {
+        window.onload = () => {
             initStarfield();
             
-            // 이미지 에러 이벤트 리스너를 비동기식 모듈 환경에서 수동으로 완벽하게 매핑 (인라인 onerror ReferenceError 근본 해결)
+            // 이미지 에러 이벤트 리스너를 비동기식 모듈 환경에서 수동으로 완벽하게 매핑 (ReferenceError 원천 차단)
             document.getElementById('detailImage').addEventListener('error', function() {
                 handleImageLoadError(this);
             });
             
-            await initAuth();
+            initDataSync();
         };
     </script>
 </body>
