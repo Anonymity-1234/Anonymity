@@ -3,6 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- 모바일 인앱 브라우저(카톡, 네이버, 사파리) 캐시 완전 무력화 메타 태그 -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Anonymity Guild Tactical Roster</title>
     <!-- Tailwind CSS CDN 로드 -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -196,7 +200,6 @@
             display: flex !important;
         }
     </style>
-    <!-- 렌더 차단 기법 적용: 바디 요소를 화면에 렌더링하기 전 동기 방식으로 세션 상태를 검출하여 정렬 깜빡임 현상을 원천 방어합니다. -->
     <script>
         (function() {
             try {
@@ -294,7 +297,7 @@
             <!-- 실시간 통계 및 제어판 요약 영역 -->
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 bg-slate-950/40 p-4 rounded-lg border border-slate-900/60 backdrop-blur-md">
                 
-                <!-- 필터 및 검색 제어 영역 (8열) -->
+                <!-- 필터 및 검색 제어 영역 -->
                 <div class="lg:col-span-8 flex flex-col md:flex-row items-stretch md:items-center gap-3">
                     <!-- 역할 필터링 탭 -->
                     <div class="flex p-1 bg-slate-950/90 rounded border border-slate-900 gap-1 self-start max-w-full" id="filterContainer">
@@ -323,7 +326,7 @@
                     </div>
                 </div>
                 
-                <!-- 하이엔드 요약 통계 정보 (4열) -->
+                <!-- 하이엔드 요약 통계 정보 -->
                 <div class="lg:col-span-4 flex items-center justify-around text-center px-2 bg-slate-950/20 rounded border border-slate-900/60 py-2 lg:py-0">
                     <div>
                         <div class="text-[9px] text-slate-600 font-bold uppercase tracking-wider">Total Active</div>
@@ -348,7 +351,7 @@
             </div>
 
             <!-- 길드원 슬롯 배치 영역 (각 카드는 3:4 프레임 고정 반영) -->
-            <div id="cardGrid" class="grid gap-6">
+            <div id="cardGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 <!-- JS 로더에 의해 동적 생성 -->
             </div>
         </main>
@@ -392,13 +395,13 @@
 
             <!-- 3. 전투력 정보 구획 (유리 질감을 투과하도록 글래스 카드화) -->
             <div class="bg-slate-950/30 border border-white/5 backdrop-blur-md p-3 rounded-lg z-10 relative">
-                <div class="text-[9px] text-slate-500 font-bold uppercase tracking-wider">전투력 (POWER)</div>
+                <div class="text-[9px] text-slate-500 font-bold uppercase tracking-wider font-mono">전투력 (POWER)</div>
                 <div class="flex items-baseline gap-1.5 mt-1">
                     <span id="detailPower" class="text-2xl font-black text-white tracking-widest font-mono">0</span>
                 </div>
             </div>
 
-            <!-- [★ 수정 반영 ★] 직업 클래스 정보 구획 (전투력과 지향색 사이에 모던하게 배치, 한마디와 동일한 text-xs 크기 및 화질 톤 동조) -->
+            <!-- 직업 클래스 정보 구획 -->
             <div class="bg-slate-950/30 border border-white/5 backdrop-blur-md p-3 rounded-lg z-10 relative">
                 <div class="text-[9px] text-slate-500 font-bold uppercase tracking-wider mb-1">직업 클래스 (CLASS)</div>
                 <div class="flex items-baseline gap-1.5">
@@ -408,7 +411,7 @@
 
             <!-- 4. 다중 지향색 수동 설정 리스트 -->
             <div class="z-10 bg-slate-950/10 border border-white/5 backdrop-blur-md p-3 rounded-lg flex flex-col gap-2">
-                <div class="text-[9px] text-slate-500 font-bold uppercase tracking-wider">지향색 (PREFERRED COLORS)</div>
+                <div class="text-[9px] text-slate-500 font-bold uppercase tracking-wider font-mono">지향색 (PREFERRED COLORS)</div>
                 <div id="detailColorsContainer" class="flex flex-wrap items-center gap-3">
                     <!-- JS에 의해 서클 배지 형태로 로딩됨 -->
                 </div>
@@ -509,7 +512,7 @@
         </div>
     </div>
 
-    <!-- 내부 입력 양식만 깔끔하게 단일 보안 연동 키 형태로 재설정한 동기화 설정 모달 구획 -->
+    <!-- 동기화 설정 모달 구획 (Vercel Serverless 연결용) -->
     <div id="gitSettingsModal" class="hidden fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-slate-950/70 backdrop-blur-xl border border-white/10 max-w-md w-full rounded-lg shadow-2xl p-6 relative overflow-hidden">
             <div class="absolute inset-0 grid-pattern opacity-5 pointer-events-none"></div>
@@ -615,21 +618,9 @@
 
         // 직업군 고유 매핑 클래스 테마 정의
         const classThemes = {
-            dealer: {
-                hex: '#ef4444',
-                rgba: 'rgba(239, 68, 68, 0.15)',
-                glow: 'rgba(239, 68, 68, 0.25)'
-            },
-            tanker: {
-                hex: '#10b981',
-                rgba: 'rgba(16, 185, 129, 0.15)',
-                glow: 'rgba(16, 185, 129, 0.25)'
-            },
-            healer: {
-                hex: '#00f0ff',
-                rgba: 'rgba(0, 240, 255, 0.15)',
-                glow: 'rgba(0, 240, 255, 0.25)'
-            }
+            dealer: { hex: '#ef4444', rgba: 'rgba(239, 68, 68, 0.15)', glow: 'rgba(239, 68, 68, 0.25)' },
+            tanker: { hex: '#10b981', rgba: 'rgba(16, 185, 129, 0.15)', glow: 'rgba(16, 185, 129, 0.25)' },
+            healer: { hex: '#00f0ff', rgba: 'rgba(0, 240, 255, 0.15)', glow: 'rgba(0, 240, 255, 0.25)' }
         };
 
         // [★ 매우 중요 ★] 소스코드 자동 대입용 격자 표기구
@@ -753,12 +744,11 @@
                     ],
                     "joinDate": "2026.06.23"
           }
-];
+        ];
         /* GITHUB_DATA_END */
 
         let guildMembers = [];
 
-        // 통합 시스템 상태 제어 정보
         const systemState = {
             activeFilter: 'all',
             searchQuery: '',
@@ -767,7 +757,6 @@
             isAdmin: false
         };
 
-        // 비율적 좌표(0~1) 기반 캔버스 은은한 천체 및 성운 그래픽 엔진
         function initStarfield() {
             const canvas = document.getElementById('starfield');
             const ctx = canvas.getContext('2d');
@@ -782,114 +771,56 @@
             resize();
 
             nebulae = [
-                {
-                    x: 0.2,
-                    y: 0.2,
-                    radiusRatio: 0.45,
-                    color: 'rgba(16, 24, 120, 0.15)',
-                    vx: 0.00004,
-                    vy: 0.00002
-                },
-                {
-                    x: 0.8,
-                    y: 0.3,
-                    radiusRatio: 0.4,
-                    color: 'rgba(88, 12, 160, 0.11)',
-                    vx: -0.00003,
-                    vy: 0.00003
-                },
-                {
-                    x: 0.5,
-                    y: 0.75,
-                    radiusRatio: 0.5,
-                    color: 'rgba(64, 8, 92, 0.13)',
-                    vx: 0.00002,
-                    vy: -0.00002
-                }
+                { x: 0.2, y: 0.2, radiusRatio: 0.45, color: 'rgba(16, 24, 120, 0.15)', vx: 0.00004, vy: 0.00002 },
+                { x: 0.8, y: 0.3, radiusRatio: 0.4, color: 'rgba(88, 12, 160, 0.11)', vx: -0.00003, vy: 0.00003 },
+                { x: 0.5, y: 0.75, radiusRatio: 0.5, color: 'rgba(64, 8, 92, 0.13)', vx: 0.00002, vy: -0.00002 }
             ];
 
             for (let i = 0; i < 250; i++) {
                 stars.push({
-                    x: Math.random(),
-                    y: Math.random(),
-                    size: Math.random() * 0.9 + 0.3,
-                    twinkleSpeed: 0.002 + Math.random() * 0.005,
-                    alpha: Math.random() * 0.5 + 0.1,
-                    direction: Math.random() > 0.5 ? 1 : -1,
-                    driftX: (Math.random() - 0.5) * 0.00005,
-                    driftY: (Math.random() - 0.5) * 0.00005
+                    x: Math.random(), y: Math.random(), size: Math.random() * 0.9 + 0.3,
+                    twinkleSpeed: 0.002 + Math.random() * 0.005, alpha: Math.random() * 0.5 + 0.1,
+                    direction: Math.random() > 0.5 ? 1 : -1, driftX: (Math.random() - 0.5) * 0.00005, driftY: (Math.random() - 0.5) * 0.00005
                 });
             }
 
             function animate() {
                 ctx.fillStyle = '#030408';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
-
                 const maxDimension = Math.max(canvas.width, canvas.height);
 
                 nebulae.forEach(neb => {
-                    neb.x += neb.vx;
-                    neb.y += neb.vy;
-
-                    if (neb.x > 1.4) neb.x = -0.4;
-                    if (neb.x < -0.4) neb.x = 1.4;
-                    if (neb.y > 1.4) neb.y = -0.4;
-                    if (neb.y < -0.4) neb.y = 1.4;
-
-                    const absoluteX = neb.x * canvas.width;
-                    const absoluteY = neb.y * canvas.height;
-                    const absoluteRadius = maxDimension * neb.radiusRatio;
-
+                    neb.x += neb.vx; neb.y += neb.vy;
+                    if (neb.x > 1.4) neb.x = -0.4; if (neb.x < -0.4) neb.x = 1.4;
+                    if (neb.y > 1.4) neb.y = -0.4; if (neb.y < -0.4) neb.y = 1.4;
+                    const absoluteX = neb.x * canvas.width, absoluteY = neb.y * canvas.height, absoluteRadius = maxDimension * neb.radiusRatio;
                     let grad = ctx.createRadialGradient(absoluteX, absoluteY, 0, absoluteX, absoluteY, absoluteRadius);
-                    grad.addColorStop(0, neb.color);
-                    grad.addColorStop(0.5, hexToRgba('#4f1285', 0.025));
-                    grad.addColorStop(1, 'rgba(0,0,0,0)');
-
-                    ctx.fillStyle = grad;
-                    ctx.beginPath();
-                    ctx.arc(absoluteX, absoluteY, absoluteRadius, 0, Math.PI * 2);
-                    ctx.fill();
+                    grad.addColorStop(0, neb.color); grad.addColorStop(0.5, hexToRgba('#4f1285', 0.025)); grad.addColorStop(1, 'rgba(0,0,0,0)');
+                    ctx.fillStyle = grad; ctx.beginPath(); ctx.arc(absoluteX, absoluteY, absoluteRadius, 0, Math.PI * 2); ctx.fill();
                 });
 
                 stars.forEach(star => {
                     star.alpha += star.twinkleSpeed * star.direction;
-                    if (star.alpha > 0.8 || star.alpha < 0.05) {
-                        star.direction *= -1;
-                    }
-
-                    star.x += star.driftX;
-                    star.y += star.driftY;
-
-                    if (star.x < 0) star.x = 1;
-                    if (star.x > 1) star.x = 0;
-                    if (star.y < 0) star.y = 1;
-                    if (star.y > 1) star.y = 0;
-
-                    const absoluteX = star.x * canvas.width;
-                    const absoluteY = star.y * canvas.height;
-
+                    if (star.alpha > 0.8 || star.alpha < 0.05) star.direction *= -1;
+                    star.x += star.driftX; star.y += star.driftY;
+                    if (star.x < 0) star.x = 1; if (star.x > 1) star.x = 0;
+                    if (star.y < 0) star.y = 1; if (star.y > 1) star.y = 0;
+                    const absoluteX = star.x * canvas.width, absoluteY = star.y * canvas.height;
                     ctx.fillStyle = `rgba(255, 255, 255, ${star.alpha})`;
-                    ctx.beginPath();
-                    ctx.arc(absoluteX, absoluteY, star.size, 0, Math.PI * 2);
-                    ctx.fill();
+                    ctx.beginPath(); ctx.arc(absoluteX, absoluteY, star.size, 0, Math.PI * 2); ctx.fill();
                 });
-
                 requestAnimationFrame(animate);
             }
             animate();
         }
 
-        // 동기화 설계: 물리적인 로컬 스토리지를 우회하고 휘발성 세션 스토리지를 통하여 데이터 수술을 진행합니다.
+        // 항상 GitHub에 배포된 최신 상태(defaultMembers)를 기본으로 로딩하여 모바일/인앱 브라우저 캐시 이슈를 타파합니다.
         function loadDatabase() {
-            // 항상 GitHub에 커밋된 최신 defaultMembers를 기준으로 렌더링합니다.
-            // 기존 sessionStorage 우선 로딩 방식은 모바일 인앱 브라우저/캐시 환경에서
-            // 예전 임시 데이터가 남아 일부 길드원이 누락되어 보이는 원인이 될 수 있습니다.
             sessionStorage.removeItem('anonymity_guild_roster_temp');
             guildMembers = JSON.parse(JSON.stringify(defaultMembers));
             renderGrid();
         }
 
-        // 운영자 권한 모드 토글 스위치 제어 (비밀번호: 260326)
         function toggleAdminMode() {
             const toggle = document.getElementById('adminToggle');
             const isChecked = toggle.checked;
@@ -909,11 +840,10 @@
             } else {
                 systemState.isAdmin = false;
                 localStorage.setItem('anonymity_admin_active', 'false');
-                sessionStorage.removeItem('anonymity_guild_roster_temp'); // 세션 종료 시 임시 연동 캐시 제거
+                sessionStorage.removeItem('anonymity_guild_roster_temp');
                 guildMembers = JSON.parse(JSON.stringify(defaultMembers));
                 showToast("OPERATOR SESSION CLOSED.");
             }
-
             applyAdminVisibility();
             renderGrid();
         }
@@ -934,7 +864,6 @@
             }
         }
 
-        // 정적인 데이터 렌더러 파이프라인 (정렬 및 필터 적용은 메모리 상에서 안전하게 처리)
         function renderGrid() {
             const grid = document.getElementById('cardGrid');
             if (!grid) return;
@@ -946,7 +875,7 @@
                 return matchesFilter && matchesSearch;
             });
 
-            // float 파싱 기반의 내림차순 정적 비교 규칙 확립
+            // 숫자형(ID 및 파워) 정렬 시 안정성을 위해 parseFloat 사용
             processed.sort((a, b) => {
                 if (systemState.sortBy === 'name') {
                     return a.name.localeCompare(b.name, 'ko');
@@ -955,12 +884,12 @@
                 } else {
                     const idA = parseFloat(a.id) || 0;
                     const idB = parseFloat(b.id) || 0;
-                    return idB - idA; // 최신 ID(더 큰 숫자 값)가 배열의 앞쪽으로 가도록 정립
+                    return idB - idA;
                 }
             });
 
             processed.forEach(member => {
-                const isSelected = member.id === systemState.selectedCardId;
+                const isSelected = member.id.toString() === (systemState.selectedCardId || '').toString();
                 const card = document.createElement('div');
                 card.setAttribute('data-id', member.id);
                 
@@ -971,9 +900,8 @@
                 
                 card.className = `char-card bg-gradient-to-b from-slate-950/80 to-slate-900/80 border-2 rounded-lg overflow-hidden relative cursor-pointer`;
                 card.style.borderColor = isSelected ? '#00f0ff' : '#0f111a';
-                if (isSelected) {
-                    card.style.boxShadow = `0 0 25px rgba(0, 240, 255, 0.25)`;
-                }
+                if (isSelected) card.style.boxShadow = `0 0 25px rgba(0, 240, 255, 0.25)`;
+                
                 card.onclick = () => selectMember(member.id);
 
                 const formattedPower = Number(member.power).toLocaleString();
@@ -981,9 +909,7 @@
                 card.innerHTML = `
                     <div class="aspect-[3/4] w-full bg-black/60 relative flex items-center justify-center overflow-hidden border-b border-slate-950">
                         <div class="absolute inset-0 grid-pattern opacity-5"></div>
-                        ${member.image ? 
-                            `<img src="${member.image}" alt="${member.name}" class="w-full h-full object-cover opacity-60 hover:opacity-85 transition-opacity" onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden')">` : ''
-                        }
+                        ${member.image ? `<img src="${member.image}" alt="${member.name}" class="w-full h-full object-cover opacity-60 hover:opacity-85 transition-opacity" onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden')">` : ''}
                         <div class="${member.image ? 'hidden' : ''} absolute inset-0 flex items-center justify-center text-4xl select-none opacity-20" style="color: ${theme.hex}; text-shadow: 0 0 15px ${theme.glow};">${member.visual}</div>
                     </div>
                     <div class="p-3 sm:p-4 bg-slate-950/90 flex flex-col gap-1">
@@ -997,23 +923,12 @@
                 `;
                 grid.appendChild(card);
             });
-
             updateStatistics();
         }
 
-        // 제어판 핸들러
-        function onSearchChange(val) {
-            systemState.searchQuery = val;
-            renderGrid();
-        }
+        function onSearchChange(val) { systemState.searchQuery = val; renderGrid(); }
+        function onSortChange(val) { systemState.sortBy = val; renderGrid(); }
 
-        // 정렬 기준 변경
-        function onSortChange(val) {
-            systemState.sortBy = val;
-            renderGrid();
-        }
-
-        // 역할 필터 변경
         function setFilter(className) {
             systemState.activeFilter = className;
             const buttons = document.querySelectorAll('.filter-btn');
@@ -1027,7 +942,6 @@
             renderGrid();
         }
 
-        // 모달 데이터 상세 뷰어 구성 변경
         function selectMember(id) {
             systemState.selectedCardId = id;
             
@@ -1043,7 +957,8 @@
                 }
             });
 
-            const member = guildMembers.find(m => m.id === id);
+            // 자료형 불일치 버그 수정을 위해 toString() 비교 강제
+            const member = guildMembers.find(m => m.id.toString() === id.toString());
             if (!member) return;
 
             const modal = document.getElementById('detailModal');
@@ -1085,12 +1000,11 @@
 
             document.getElementById('detailPower').textContent = Number(member.power).toLocaleString();
 
-            // [★ 클래스 표기 스타일 최적화 ★] 글자 크기를 한마디(text-xs)와 동조하고 색상을 전투력 톤인 text-slate-300(또는 text-white)에 완벽 일치 처리
             const classDisplay = document.getElementById('detailClassDisplay');
             if (classDisplay) {
-                classDisplay.textContent = (member.job || member.class).toUpperCase();
-                classDisplay.style.color = '';
-                classDisplay.style.textShadow = '';
+                classDisplay.textContent = (member.job || "미지정").toUpperCase();
+                classDisplay.style.color = "#e2e8f0";
+                classDisplay.style.textShadow = "none";
             }
 
             const colorsContainer = document.getElementById('detailColorsContainer');
@@ -1111,7 +1025,6 @@
             }
 
             document.getElementById('detailDesc').textContent = `"${member.desc}"`;
-
             applyAdminVisibility();
         }
 
@@ -1121,22 +1034,22 @@
             const placeholderIcon = document.getElementById('imagePlaceholderIcon');
             placeholder.classList.remove('hidden');
             
-            const member = guildMembers.find(m => m.id === systemState.selectedCardId);
-            if (member) {
-                const theme = classThemes[member.class] || classThemes.dealer;
-                placeholderIcon.textContent = member.visual || "👤";
-                placeholderIcon.style.color = theme.hex;
-                placeholderIcon.style.textShadow = `0 0 20px ${theme.glow}`;
+            if (systemState.selectedCardId) {
+                const member = guildMembers.find(m => m.id.toString() === systemState.selectedCardId.toString());
+                if (member) {
+                    const theme = classThemes[member.class] || classThemes.dealer;
+                    placeholderIcon.textContent = member.visual || "👤";
+                    placeholderIcon.style.color = theme.hex;
+                    placeholderIcon.style.textShadow = `0 0 20px ${theme.glow}`;
+                }
             }
         }
 
         function closeDetailModal() {
             const modal = document.getElementById('detailModal');
             const panel = document.getElementById('detailPanel');
-            
             panel.classList.remove('scale-100', 'opacity-100');
             panel.classList.add('scale-95', 'opacity-0');
-            
             setTimeout(() => {
                 modal.classList.add('hidden');
                 systemState.selectedCardId = null;
@@ -1144,7 +1057,6 @@
             }, 250);
         }
 
-        // 통계 갱신 처리
         function updateStatistics() {
             const total = document.getElementById('statTotal');
             if (!total) return;
@@ -1154,11 +1066,9 @@
             document.getElementById('statHealer').textContent = guildMembers.filter(m => m.class === 'healer').length;
         }
 
-        // 지향색 등록용 로우 동적 추가
         function addFormColorRow(hexVal = '#00f0ff') {
             const container = document.getElementById('formColorsContainer');
             const rowId = 'color_row_' + Date.now() + Math.random().toString(36).substr(2, 5);
-
             const row = document.createElement('div');
             row.id = rowId;
             row.className = 'flex items-center gap-3 bg-black/60 p-2 rounded border border-slate-800';
@@ -1184,16 +1094,12 @@
 
         function syncColorRowText(rowId, hex) {
             const row = document.getElementById(rowId);
-            if (row) {
-                row.querySelector('.color-text-input').value = hex.toUpperCase();
-            }
+            if (row) row.querySelector('.color-text-input').value = hex.toUpperCase();
         }
 
         function syncColorRowPicker(rowId, hex) {
             const row = document.getElementById(rowId);
-            if (row && /^#[0-9A-F]{6}$/i.test(hex)) {
-                row.querySelector('input[type="color"]').value = hex;
-            }
+            if (row && /^#[0-9A-F]{6}$/i.test(hex)) row.querySelector('input[type="color"]').value = hex;
         }
 
         function openAddModal() {
@@ -1202,14 +1108,14 @@
             document.getElementById('formSubmitBtn').textContent = "Confirm Deployment";
             document.getElementById('formMemberId').value = "";
             document.getElementById('formJob').value = "";
-            
             const container = document.getElementById('formColorsContainer');
             container.innerHTML = '';
             addFormColorRow('#00f0ff');
         }
 
         function triggerEditMember() {
-            const member = guildMembers.find(m => m.id === systemState.selectedCardId);
+            if (!systemState.selectedCardId) return;
+            const member = guildMembers.find(m => m.id.toString() === systemState.selectedCardId.toString());
             if (!member) return;
 
             document.getElementById('detailModal').classList.add('hidden');
@@ -1242,7 +1148,6 @@
             document.getElementById('formColorsContainer').innerHTML = '';
         }
 
-        // 깃허브 연동 모달 관련 제어 로직 (Vercel Secret Key 단일 연동 처리)
         function openGitSettingsModal() {
             document.getElementById('gitSettingsModal').classList.remove('hidden');
             document.getElementById('vercelSecretKey').value = localStorage.getItem('vercel_secret_key') || '';
@@ -1260,10 +1165,8 @@
             closeGitSettingsModal();
         }
 
-        // Vercel Serverless Function 호출을 통한 깃허브 실시간 동기화 엔진
         async function syncToGitHub(commitMsg) {
             const secretKey = localStorage.getItem('vercel_secret_key');
-
             if (!secretKey) {
                 showToast("데이터가 임시 저장되었습니다. GITHUB SYNC 설정을 진행해 주십시오.");
                 return false;
@@ -1276,29 +1179,23 @@
 
             try {
                 if (loaderMsg) loaderMsg.textContent = "REQUESTING SERVERLESS DATA SYNC...";
-                
+                // 반드시 Vercel 배포 주소에서 실행해야 CORS 및 파싱 오류가 발생하지 않습니다.
                 const response = await fetch('/api/update', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         commitMessage: commitMsg,
-                        members: guildMembers, // 가상 메모리 상의 최신 멤버 데이터 전달
-                        secretKey: secretKey   // 인가 검증용 보안 키 전달
+                        members: guildMembers,
+                        secretKey: secretKey
                     })
                 });
 
                 const result = await response.json();
-
-                if (!response.ok) {
-                    throw new Error(result.message || "Serverless sync failed.");
-                }
+                if (!response.ok) throw new Error(result.message || "Serverless sync failed.");
 
                 if (loader) loader.classList.add('hidden');
                 showToast("원격 깃허브 소스코드 커밋 완료! 반영까지 약 1~2분 소요됩니다.");
                 return true;
-
             } catch (error) {
                 if (loader) loader.classList.add('hidden');
                 showToast("SYNC ERROR: " + error.message);
@@ -1306,7 +1203,6 @@
             }
         }
 
-        // CRUD 액션 후 원격 깃허브 자동 동기화 호출 연동
         async function submitMemberForm(e) {
             e.preventDefault();
 
@@ -1320,36 +1216,22 @@
 
             const colorInputs = document.querySelectorAll('#formColorsContainer input[type="color"]');
             const colors = [];
-            colorInputs.forEach(input => {
-                if (input.value) {
-                    colors.push(input.value.toLowerCase());
-                }
-            });
+            colorInputs.forEach(input => { if (input.value) colors.push(input.value.toLowerCase()); });
 
-            const visuals = {
-                dealer: '⚔️',
-                tanker: '🛡️',
-                healer: '✨'
-            };
-
+            const visuals = { dealer: '⚔️', tanker: '🛡️', healer: '✨' };
             const targetId = memberIdVal ? memberIdVal : Date.now().toString();
 
             const data = {
                 id: targetId,
-                name,
-                job,
-                image,
-                power,
+                name, job, image, power,
                 class: className,
-                desc,
-                visual: visuals[className],
-                colors: colors
+                desc, visual: visuals[className], colors
             };
 
             let originalMembers = JSON.parse(JSON.stringify(guildMembers));
 
             if (memberIdVal) {
-                const idx = guildMembers.findIndex(m => m.id === memberIdVal);
+                const idx = guildMembers.findIndex(m => m.id.toString() === memberIdVal.toString());
                 if (idx !== -1) {
                     data.joinDate = guildMembers[idx].joinDate;
                     guildMembers[idx] = data;
@@ -1357,14 +1239,13 @@
             } else {
                 const now = new Date();
                 data.joinDate = `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, '0')}.${String(now.getDate()).padStart(2, '0')}`;
-                guildMembers.push(data);
+                guildMembers.unshift(data); // 신규 등록 시 배열의 맨 앞에 추가되도록 보정
             }
 
             sessionStorage.setItem('anonymity_guild_roster_temp', JSON.stringify(guildMembers));
             renderGrid();
 
             const success = await syncToGitHub(`Tactical Update: Member Registry [${name}] changed.`);
-            
             if (success) {
                 closeAddModal();
                 systemState.selectedCardId = targetId;
@@ -1376,11 +1257,11 @@
             }
         }
 
-        // 제명 시 원격 깃허브 자동 동기화 호출 연동
         let pendingDecommissionId = null;
 
         function requestDecommission() {
-            const member = guildMembers.find(m => m.id === systemState.selectedCardId);
+            if (!systemState.selectedCardId) return;
+            const member = guildMembers.find(m => m.id.toString() === systemState.selectedCardId.toString());
             if (!member) return;
 
             pendingDecommissionId = member.id;
@@ -1396,10 +1277,11 @@
         async function executeDecommission() {
             if (!pendingDecommissionId) return;
 
-            const member = guildMembers.find(m => m.id === pendingDecommissionId);
+            const member = guildMembers.find(m => m.id.toString() === pendingDecommissionId.toString());
             const originalMembers = JSON.parse(JSON.stringify(guildMembers));
 
-            guildMembers = guildMembers.filter(m => m.id !== pendingDecommissionId);
+            // 문자열 변환 기반의 정확한 삭제 필터링 가동
+            guildMembers = guildMembers.filter(m => m.id.toString() !== pendingDecommissionId.toString());
 
             sessionStorage.setItem('anonymity_guild_roster_temp', JSON.stringify(guildMembers));
             renderGrid();
@@ -1417,35 +1299,23 @@
             }
         }
 
-        // 인트로 관문 액션 헬퍼: 승인 획득 시 매끄럽게 페이드 아웃 후 본체를 기동하는 루틴
         function proceedToDatabase() {
             const intro = document.getElementById('introOverlay');
             const card = document.getElementById('introCard');
             
-            if (card) {
-                card.classList.remove('scale-100');
-                card.classList.add('scale-95');
-            }
-            if (intro) {
-                intro.style.opacity = '0';
-            }
+            if (card) { card.classList.remove('scale-100'); card.classList.add('scale-95'); }
+            if (intro) { intro.style.opacity = '0'; }
             
-            // 세션 스토리지에 관문 통과 상태 기록
             sessionStorage.setItem('anonymity_intro_passed', 'true');
             
             setTimeout(() => {
                 document.documentElement.classList.add('session-passed');
-                // 렌더 패스를 재동기화하여 그리드가 레이아웃에 정상 안착되도록 가속
-                if (typeof renderGrid === 'function') {
-                    renderGrid();
-                }
+                if (typeof renderGrid === 'function') renderGrid();
             }, 1000);
         }
 
-        // 예외 제어 폐쇄 루틴: 브라우저 보안 장벽에 의한 창 닫기 차단을 극복하는 안전 셧다운 구현
         function terminateConnection() {
             const card = document.getElementById('introCard');
-            
             if (card) {
                 card.style.borderColor = 'rgba(239, 68, 68, 0.4)';
                 card.innerHTML = `
@@ -1464,15 +1334,10 @@
                     </div>
                 `;
             }
-            
-            try {
-                window.close();
-            } catch (e) {
-                console.warn("Browser security blocked automatic tab closure.");
-            }
+            try { window.close(); } catch (e) { console.warn("Browser security blocked automatic tab closure."); }
         }
 
-        // 윈도우 스코프 수동 바인딩
+        // 전역 바인딩 처리
         window.toggleAdminMode = toggleAdminMode;
         window.applyAdminVisibility = applyAdminVisibility;
         window.renderGrid = renderGrid;
@@ -1500,15 +1365,10 @@
         window.proceedToDatabase = proceedToDatabase;
         window.terminateConnection = terminateConnection;
 
-        // 초기화 가동 실행
         window.onload = () => {
             initStarfield();
+            document.getElementById('detailImage').addEventListener('error', function() { handleImageLoadError(this); });
             
-            document.getElementById('detailImage').addEventListener('error', function() {
-                handleImageLoadError(this);
-            });
-            
-            // 세션 복원 메커니즘: 현재 탭 세션에서 이전에 인트로 관문을 통과했는지 여부를 검사하여 자동 바이패스를 실행합니다.
             const introPassed = sessionStorage.getItem('anonymity_intro_passed');
             if (introPassed === 'true') {
                 const intro = document.getElementById('introOverlay');
@@ -1516,7 +1376,6 @@
                 if (intro) intro.classList.add('hidden');
                 if (content) content.classList.remove('hidden');
             }
-            
             loadDatabase();
         };
     </script>
